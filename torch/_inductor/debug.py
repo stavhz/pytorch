@@ -70,7 +70,8 @@ def draw_buffers(nodes, print_graph=False, fname=None):
         if isinstance(node, ir.ComputedBuffer):
             dtype = node.data.dtype
 
-        metadata = TensorMetadata(group, dtype, None, None, None, None, None)
+        requires_grad = node.meta['fusion_meta'].snode.node.__class__.__name__
+        metadata = TensorMetadata(group, dtype, requires_grad, None, None, None, None)
         node.meta["tensor_meta"] = metadata
 
     if print_graph:
@@ -148,7 +149,7 @@ def create_fx_from_snodes(snodes: List[BaseSchedulerNode]) -> fx.Graph:
     # create edges between nodes
     for snode in snodes:
         name = snode.get_name()
-        deps = snode.read_writes.reads
+        deps = snode.unmet_dependencies
 
         fx_node = buf_to_fx_node[name]
         new_args = []
