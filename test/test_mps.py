@@ -239,6 +239,7 @@ def mps_ops_modifier(ops):
         'eq': [torch.uint8],
         'equal': [torch.uint8],
         'erf': [torch.uint8],
+        'erfinv': [torch.uint8],
         'exp2': [torch.uint8],
         'exp': [torch.uint8],
         'expm1': [torch.uint8],
@@ -7489,6 +7490,8 @@ class TestNLLLoss(TestCaseMPS):
         helper((2, 8, 3, 5), torch.expm1)
         helper((2, 8, 3, 5), torch.log)
         helper((2, 8, 3, 5), torch.cos)
+        helper((2, 8, 3, 5), torch.erfinv)
+
 
     def test_atan2(self):
         def helper(shape):
