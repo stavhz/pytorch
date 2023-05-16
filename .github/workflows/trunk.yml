@@ -172,8 +172,8 @@ jobs:
           { config: "default", shard: 4, num_shards: 6, runner: "windows.g5.4xlarge.nvidia.gpu" },
           { config: "default", shard: 5, num_shards: 6, runner: "windows.g5.4xlarge.nvidia.gpu" },
           { config: "default", shard: 6, num_shards: 6, runner: "windows.g5.4xlarge.nvidia.gpu" },
-          { config: "distributed", shard: 1, num_shards: 3, runner: "windows.g5.4xlarge.nvidia.gpu" }
-          { config: "force_on_cpu", shard: 1, num_shards: 1, runner: "windows.4xlarge.nonephemeral" },
+          { config: "distributed", shard: 1, num_shards: 3, runner: "windows.g5.4xlarge.nvidia.gpu" },
+          { config: "force_on_cpu", shard: 1, num_shards: 1, runner: "windows.4xlarge.nonephemeral" }
         ]}
 
   linux-focal-rocm5_4_2-py3_8-build:
