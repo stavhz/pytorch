@@ -15,6 +15,7 @@ import torch.fx._pytree as fx_pytree
 import torch.utils._pytree as pytree
 
 from . import error
+from torch._functorch.aot_autograd import GraphSignature
 
 ExportGraphModule = fx.GraphModule
 
@@ -50,6 +51,7 @@ class ExportMetadata:
     input_shape_constraints: Dict[str, Any] = dataclasses.field(default_factory=dict)
     inline_constraints: Dict[str, Any] = dataclasses.field(default_factory=dict)
     input_name_to_example_inputs: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    graph_signature: GraphSignature = None
 
 
 EXPORT_METADATA = "_export_metadata_key"
@@ -236,6 +238,7 @@ def make_export_graph_module(
     out_spec: Optional[pytree.TreeSpec] = None,
     mutation: Optional[List[Tuple[str, List[str]]]] = None,
     example_inputs: Any = None,
+    graph_signature: GraphSignature = None,
     class_name: str = "ExportGraphModule",
 ) -> fx.GraphModule:
 
@@ -274,6 +277,7 @@ def make_export_graph_module(
         input_shape_constraints=input_shape_constraints_by_src_name,
         inline_constraints=inline_constraints,
         input_name_to_example_inputs=input_name_to_example_inputs,
+        graph_signature=graph_signature
     )
     attach_export_graph_metadata(gm, meta)
     return gm
