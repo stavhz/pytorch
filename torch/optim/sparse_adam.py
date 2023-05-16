@@ -97,10 +97,37 @@ class SparseAdam(Optimizer):
 
         return loss
 
-SparseAdam.__doc__ = r"""Implements lazy version of Adam algorithm suitable for sparse tensors.
+SparseAdam.__doc__ = r"""SparseAdam implements a masked version of the Adam algorithm
+    suitable for sparse gradients. Please note that SparseAdam is NOT equivalent to
+    Adam "but for sparse gradients", and we understand this may be confusing.
 
-    In this variant, only moments that show up in the gradient get updated, and
-    only those portions of the gradient get applied to the parameters.
+    This is a semantically different optimizer where only moments that are non-zero
+    values in the sparse Tensor of gradients get updated, and only those portions of
+    the gradient get applied to the parameters. This is an optimization, since the
+    values not materialized in the sparse Tensor of gradients will be masked out and
+    skipped. Naturally, the more 0s that are masked, the more performant the
+    optimization. We implement this optimization by using sparse layout Tensors to
+    do the update computations.
+
+    SparseAdam is intended for a narrow subset of use cases, specifically parameters
+    of a dense layout with gradients of a sparse layout. This is a special case where
+    the module backwards produces grads with a sparse layout and we can thus take
+    advantage of the sparsity of the grads. One example NN module that behaves as such
+    is ``nn.Embedding(sparse=True)``.
+
+
+    .. note::
+
+        If you suspect your gradients are semantically sparse (but do not have sparse
+        layout), this variant may not be the best for you. Ideally, you want to avoid
+        materializing anything that is suspected to be sparse in the first place, since
+        needing to convert all your grads from dense layout to sparse layout may outweigh
+        the performance gain. Here, using Adam may be the best alternative, unless you
+        can easily rig up your module to output sparse grads similar to
+        ``nn.Embedding(sparse=True)``. If you insist on converting your grads, you can do
+        so by manually overriding your parameters' ``.grad`` fields with their sparse
+        equivalents before calling ``.step()``.
+
 
     Args:
         params (iterable): iterable of parameters to optimize or dicts defining
