@@ -404,7 +404,6 @@ def mps_ops_modifier(ops):
         'cumprod': None,
         'digamma': None,
         'erfc': None,
-        'erfinv': None,
         'frexp': None,
         'gcd': None,
         'geqrf': None,
