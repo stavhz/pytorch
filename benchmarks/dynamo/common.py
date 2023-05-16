@@ -97,7 +97,6 @@ CI_SKIP[CI("eager", training=True)] = [
     "hf_BigBird",  # fp64_OOM
     "hf_T5_base",  # fp64_OOM
     "llama",  # Accuracy failed: allclose not within tol=0.001
-    "vision_maskrcnn",  # shape mismatch in accuracy check!
     # Huggingface
     "XGLMForCausalLM",  # OOM
     # TIMM
@@ -143,7 +142,6 @@ CI_SKIP[CI("aot_eager", training=True)] = [
     "resnet50_quantized_qat",  # fp64_OOM
     "moco",
     "pytorch_struct",
-    "vision_masrkcnn",  # AssertionError: nothing in example_inputs had a dim with 4
     # Huggingface
     "MBartForConditionalGeneration",  # OOM
     "M2M100ForConditionalGeneration",  # OOM
@@ -254,7 +252,7 @@ CI_SKIP[CI("aot_eager", training=False, dynamic=True)] = [
     *CI_SKIP[CI("aot_eager", training=False)],
     "cm3leon_generate",  # Could not validate constraint UnspecConstraint
     "hf_T5_generate",  # Could not validate constraint UnspecConstraint
-    "vision_maskrcnn",  # nothing in example_inputs had a dim with 4
+    "vision_maskrcnn",  # accuracy failure on boxes, after https://github.com/pytorch/pytorch/issues/101093
 ]
 
 CI_SKIP[CI("aot_eager", training=True, dynamic=True)] = [
