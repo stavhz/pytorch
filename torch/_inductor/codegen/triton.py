@@ -24,12 +24,14 @@ from ..utils import (
     get_fused_kernel_name,
     get_kernel_category_by_source_code,
     get_kernel_metadata,
+    green_text,
     instance_descriptor,
     next_power_of_2,
     sympy_product,
     sympy_subs,
     sympy_symbol,
     unique,
+    yellow_text,
 )
 from ..virtualized import ops, V
 
@@ -1663,6 +1665,74 @@ class TritonKernel(Kernel):
                 f"{name}.run({call_args_str}, grid=grid({', '.join(grid)}), stream={stream_name})"
             )
 
+    def warn_mix_layout(self, kernel_name):
+        """
+        Print message if the kernel have mixed layout inputs.
+        Only care about 4D tensor for now.
+        """
+        if (
+            len(self.args.input_buffers) == 1
+            and len(self.args.output_buffers) == 1
+            and len(self.args.inplace_buffers) == 0
+        ):
+            # even if input buffer and output buffer have different layout,
+            # this can be a layout conversion kernel. No need to warn for
+            # the mix layouts.
+            return
+
+        argdefs, call_args, signature = self.args.python_argdefs()
+        uniform_stride_order = None
+        for arg_name in call_args:
+            buf = V.graph.get_buffer(arg_name)
+            if buf and len(buf.layout.size) == 4:
+                # ignore the tensor if only 1 dimention is non-zero
+                if len([x for x in buf.layout.size if x == 1]) == 3:
+                    continue
+                stride_order = ir.get_stride_order(buf.layout.stride)
+                if uniform_stride_order is None:
+                    uniform_stride_order = stride_order
+                elif uniform_stride_order != stride_order:
+                    print(
+                        yellow_text(
+                            f"Expected stride order {uniform_stride_order}, but found stride order"
+                            + f" {stride_order} for kernel {kernel_name}"
+                        )
+                    )
+
+                    stride_order_list = [
+                        ir.get_stride_order(V.graph.get_buffer(name).layout.stride)
+                        if V.graph.get_buffer(name)
+                        else None
+                        for name in call_args
+                    ]
+                    size_list = [
+                        V.graph.get_buffer(name).layout.size
+                        if V.graph.get_buffer(name)
+                        else None
+                        for name in call_args
+                    ]
+                    source_list = [
+                        "GraphInput"
+                        if name in V.graph.graph_inputs
+                        else "IntermediateBuffer"
+                        if name in V.graph.name_to_buffer
+                        else None
+                        for name in call_args
+                    ]
+
+                    print(
+                        yellow_text(
+                            f"  param names {argdefs}\n  buf names {call_args}\n  strides {stride_order_list}"
+                            + f"\n  sizes {size_list}\n  sources {source_list}\n"
+                        )
+                    )
+                    return
+        print(
+            green_text(
+                f"All the inputs for the triton kernel {kernel_name} have uniform layout"
+            )
+        )
+
     def create_cse_var(self, *args, **kwargs):
         return TritonCSEVariable(*args, **kwargs)
 
@@ -1934,8 +2004,10 @@ class TritonScheduling:
 
         src_code = kernel.codegen_kernel()
         kernel_name = self.define_kernel(src_code, node_schedule)
-
         kernel.call_kernel(V.graph.wrapper_code, kernel_name)
+
+        if config.warn_mix_layout:
+            kernel.warn_mix_layout(kernel_name)
 
         if (
             V.graph.wrapper_code.supports_intermediate_hooks
