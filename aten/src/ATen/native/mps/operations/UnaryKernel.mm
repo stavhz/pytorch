@@ -14,8 +14,7 @@
 
 namespace at::native {
 const std::string& getMetalType(const c10::ScalarType& t) {
-  // Mapping from c10::ScalarType to integral type that can be used for bitwise ops
-  // As bitwise ops sign-agnostic map signed/unsigned char and boolean to the same type
+  // Mapping from c10::ScalarType to integral type that can be used for unary ops
   static std::unordered_map<c10::ScalarType, std::string> scalar_to_metal_type = {
       // int8, uint8, int16, int32, int64, float16, float32
       {c10::ScalarType::Half, "half"},
@@ -23,7 +22,7 @@ const std::string& getMetalType(const c10::ScalarType& t) {
       {c10::ScalarType::Long, "long"},
       {c10::ScalarType::Int, "int"},
       {c10::ScalarType::Short, "short"},
-      {c10::ScalarType::Bool, "char"},
+      {c10::ScalarType::Bool, "int8_t"},
   };
 
   auto it = scalar_to_metal_type.find(t);
