@@ -84,8 +84,8 @@ static id<MTLComputePipelineState> getCPLState(id<MTLDevice> device,
 
 TORCH_IMPL_FUNC(erfinv_out_mps)(const Tensor& self, const Tensor& output_) {
   // handle erfinv ops using metal kernel
-  // erfinv algorithm ported from boost/math/special_functions/detail/erf_inv.hpp
-  // https://github.com/boostorg/math/blob/c56f334348d5476783fba996d604fc5c6ae980c3/include/boost/math/special_functions/detail/erf_inv.hpp
+  // erfinv algorithm ported from aten/src/ATen/native/Math.h
+  // https://github.com/pytorch/pytorch/blob/4154c8ea159fdaecc71ee9af820ac956193c875b/aten/src/ATen/native/Math.h#L152
 
   TORCH_CHECK(self.scalar_type() != ScalarType::Double, "MPS does not support erfinv op with scalar type: Double");
 
